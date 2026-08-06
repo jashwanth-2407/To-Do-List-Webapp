@@ -1,0 +1,53 @@
+<head>
+<meta name="="viewport"
+content="Width"=device-width,initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+<div class="container">
+<h1>TO DO LIST</h1>
+<input id="input">
+<button onclick="add()">ADD</button>
+
+<ul id="listcontainer">
+</ul>
+</div>
+<script>
+//selecting ul,input
+var input=document.getElementById("input")
+
+var ul =document.getElementById("listcontainer")
+function add(){
+    if(input.value.trim()==""){alert("please enter a task");  return;}
+var listitem=document.createElement("li")
+var checkbox=document.createElement("input")
+checkbox.type="checkbox"
+checkbox.onclick=function(){span.classList.toggle("done")}
+var span=document.createElement("span")
+span.textContent=input.value
+var deletebtn=document.createElement("button")
+deletebtn.textContent="delete "
+
+listitem.appendChild(checkbox)
+listitem.appendChild(span)
+listitem.appendChild(deletebtn)
+ul.append(listitem)
+saveData()
+input.value=""
+}
+input.addEventListener("keypress",function(evnet){if(event.key=="Enter"){add()}})
+
+function deleteitem(event){
+event.target. parentElement.remove()
+}
+function saveData(){
+localStorage.setItem("data",ul.innerHTML)
+}
+function showTask(){
+    ul.innerHTML=localStorage.getItem("data")
+}
+showTask()
+ul.addEventListener("click",function(event){
+    if(event.target.tagName==="BUTTON"){event.target.parentElement.remove();saveData()}
+})
+
+</script>
