@@ -40,10 +40,10 @@ function deleteitem(event){
 event.target. parentElement.remove()
 }
 function saveData(){
-localStorage.setItem("data",ul.innerHTML)
+sessionStorage.setItem("data",ul.innerHTML)
 }
 function showTask(){
-    ul.innerHTML=localStorage.getItem("data")
+    ul.innerHTML=sessionStorage.getItem("data")
 }
 showTask()
 ul.addEventListener("click",function(event){
