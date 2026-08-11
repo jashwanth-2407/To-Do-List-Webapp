@@ -1,54 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta name="="viewport"
-content="Width"=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>To Do List</title>
 <link rel="stylesheet" href="style.css">
 </head>
+<body>
 <div class="container">
-  
-<h1>TO DO LIST</h1>
-<input id="input">
-<button onclick="add()">ADD</button>
+  <h1>TO DO LIST</h1>
 
-<ul id="listcontainer">
-</ul>
+  <div id="tabbar" class="tabbar"></div>
+
+  <input id="input">
+  <button onclick="add()">ADD</button>
+
+  <ul id="listcontainer"></ul>
 </div>
+
 <script>
-//selecting ul,input
-var input=document.getElementById("input")
+// ---------- data structure ----------
+// lists = [ { name: "List 1", tasks: [ {text, done}, ... ] }, ... ]
+var lists = JSON.parse(localStorage.getItem("lists")) || [
+  { name: "List 1", tasks: [] }
+];
+var activeIndex = parseInt(localStorage.getItem("activeIndex")) || 0;
 
-var ul =document.getElementById("listcontainer")
-function add(){
-    if(input.value.trim()==""){alert("please enter a task");  return;}
-var listitem=document.createElement("li")
-var checkbox=document.createElement("input")
-checkbox.type="checkbox"
-checkbox.onclick=function(){span.classList.toggle("done")}
-var span=document.createElement("span")
-span.textContent=input.value
-var deletebtn=document.createElement("button")
-deletebtn.textContent="delete "
+var input = document.getElementById("input");
+var ul = document.getElementById("listcontainer");
+var tabbar = document.getElementById("tabbar");
 
-listitem.appendChild(checkbox)
-listitem.appendChild(span)
-listitem.appendChild(deletebtn)
-ul.append(listitem)
-saveData()
-input.value=""
+function saveAll() {
+  localStorage.setItem("lists", JSON.stringify(lists));
+  localStorage.setItem("activeIndex", activeIndex);
 }
-input.addEventListener("keypress",function(evnet){if(event.key=="Enter"){add()}})
 
-function deleteitem(event){
-event.target. parentElement.remove()
-}
-function saveData(){
-localStorage.setItem("data",ul.innerHTML)
-}
-function showTask(){
-    ul.innerHTML=localStorage.getItem("data")
-}
-showTask()
-ul.addEventListener("click",function(event){
-    if(event.target.tagName==="BUTTON"){event.target.parentElement.remove();saveData()}
-})
+// ---------- render tabs ----------
+function renderTabs() {
+  tabbar.innerHTML = "";
+  lists.forEach(function (list, i) {
+    var tab = document.createElement("button");
+    tab.textContent = list.name;
+    tab.className = "tab" + (i === activeIndex ? " active" : "");
+    tab.onclick = function () {
+      activeIndex = i;
+      saveAll();
+      renderTabs();
+      renderTasks();
+    };
+    tab.oncontextmenu = function (e) {
+      e.preventDefault();
+      renameOrDelete(i);
+    };
+    tabbar.appendChild(tab);
+  });
 
+  var addTab = document.createElement("button");
+  addTab.textContent = "+";
+  addTab.className = "tab addtab";
+  addTab.onclick = function () {
+    var name = prompt("New list name:", "List " + (lists.length + 1));
+    if (name === null || name.trim() === "") return;
+    lists.push({ name: name.trim(), tasks: [] });
+    activeIndex = lists.length - 1;
+    saveAll();
+    renderTabs();
+    renderTasks();
+  };
+  tabbar.appendChild(addTab);
+}
+
+function renameOrDelete(i) {
+  var choice = prompt(
+    'Type "r" to rename, "d" to delete this list:',
+    "r"
+  );
+  if (choice === "r") {
+    var newName = prompt("New name:", lists[i].name);
+    if (newName && newName.trim() !== "") {
+      lists[i].name = newName.trim();
+    }
+  } else if (choice === "d") {
+    if (lists.length === 1) {
+      alert("You need at least one list.");
+      return;
+    }
+    if (confirm('Delete "' + lists[i].name + '"?')) {
+      lists.splice(i, 1);
+      if (activeIndex >= lists.length) activeIndex = lists.length - 1;
+    }
+  }
+  saveAll();
+  renderTabs();
+  renderTasks();
+}
+
+// ---------- render tasks for active list ----------
+function renderTasks() {
+  ul.innerHTML = "";
+  lists[activeIndex].tasks.forEach(function (task, i) {
+    var li = document.createElement("li");
+
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = task.done;
+    checkbox.onclick = function () {
+      task.done = checkbox.checked;
+      span.classList.toggle("done");
+      saveAll();
+    };
+
+    var span = document.createElement("span");
+    span.textContent = task.text;
+    if (task.done) span.classList.add("done");
+
+    var deletebtn = document.createElement("button");
+    deletebtn.textContent = "delete";
+    deletebtn.onclick = function () {
+      lists[activeIndex].tasks.splice(i, 1);
+      saveAll();
+      renderTasks();
+    };
+
+    li.appendChild(checkbox);
+    li.appendChild(span);
+    li.appendChild(deletebtn);
+    ul.appendChild(li);
+  });
+}
+
+function add() {
+  if (input.value.trim() === "") {
+    alert("please enter a task");
+    return;
+  }
+  lists[activeIndex].tasks.push({ text: input.value.trim(), done: false });
+  saveAll();
+  renderTasks();
+  input.value = "";
+}
+
+input.addEventListener("keypress", function (event) {
+  if (event.key === "Enter") add();
+});
+
+// ---------- init ----------
+renderTabs();
+renderTasks();
 </script>
+</body>
+</html>
