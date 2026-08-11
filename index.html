@@ -21,7 +21,6 @@ function add(){
 var listitem=document.createElement("li")
 var checkbox=document.createElement("input")
 checkbox.type="checkbox"
-checkbox.onclick=function(){span.classList.toggle("done")}
 var span=document.createElement("span")
 span.textContent=input.value
 var deletebtn=document.createElement("button")
@@ -48,6 +47,7 @@ function showTask(){
 showTask()
 ul.addEventListener("click",function(event){
     if(event.target.tagName==="BUTTON"){event.target.parentElement.remove();saveData()}
+if(event.target.type==="checkbox"){event.target.nextElementSibling.classList.toggle("done");saveData()}
 })
 
 </script>
